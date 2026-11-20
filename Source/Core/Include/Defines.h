@@ -1,5 +1,10 @@
 #pragma once
 
 // Defining basic types
-#define INT size_t
-#define FLOAT float
+#ifndef INT
+    #define INT size_t
+#endif
+
+#ifndef FLOAT
+    #define FLOAT float
+#endif
