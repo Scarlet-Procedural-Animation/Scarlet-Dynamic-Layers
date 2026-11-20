@@ -16,4 +16,4 @@ Value `A` is recalculated upon calling `getValue()` **only if** there was a chan
 ![](Documentation/Code%20Design.png)
 [Code Design Excalidraw](Documentation/Code%20Design.md)
 
-Dynamic layers are designed primarily using C++ templates. No virtual methods are used at any stage of calculations. With the result of careful design, all functions are expected to inline nicely.
+Dynamic layers are designed primarily using C++ templates. No virtual methods are used at any stage of calculations (only for layer insertion and deletion). With the result of careful design, all functions are expected to inline nicely.
