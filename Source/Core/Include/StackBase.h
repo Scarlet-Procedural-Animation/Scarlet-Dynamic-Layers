@@ -69,7 +69,7 @@ public:
     virtual void removeLayer(INT layer_id)
     {
         // Remove from stack order
-        stackOrder.erase(remove(stackOrder.begin(), stackOrder.end(), layer_id), stackOrder.end());
+        removeFromOrder(layer_id);
 
         // Mark as free
         freeIndices.push_back(layer_id);
@@ -109,8 +109,24 @@ protected:
         {
             stackOrder[i + 1] = stackOrder[i];
             stackOrder[i] = layer_id;
+
+            layers[stackOrder[i + 1]].order_index = i + 1;
+            layers[layer_id].order_index = i;
+
             i++;
         }
+    }
+
+    // Removes layer from stack order
+    void removeFromOrder(INT layer_id)
+    {
+        size_t i = layers[layer_id].order_index;
+        while (i < stackOrder.size() - 1)
+        {
+            stackOrder[i] = stackOrder[i + 1];
+            i++;
+        }
+        stackOrder.pop_back();
     }
 
 private:
