@@ -46,6 +46,9 @@ public:
     // Non-editable reference to a layer
     const LayerT& operator[](INT index) const { return layers[index]; }
 
+    // Number of layers in the stack
+    size_t size() { return stackOrder.size(); } // Because `layers` may contain free slots
+
     // Returns stack order
     // Stack order contains layer ids in the application order
     const std::vector<INT>& getOrder() { return stackOrder; }
@@ -104,13 +107,33 @@ protected:
 
         INT priority = layers[layer_id].priority;
 
-        size_t i = stackOrder.size() - 2;
-        while (priority < layers[stackOrder[i]].priority)
+        sinkLayerInOrder(layer_id, priority, stackOrder.size() - 1);
+    }
+
+    void sinkLayerInOrder(INT layer_id, INT priority, size_t order_index)
+    {
+        size_t i = order_index - 1;
+        while (i >= 0 && priority < layers[stackOrder[i]].priority)
         {
             stackOrder[i + 1] = stackOrder[i];
             stackOrder[i] = layer_id;
 
             layers[stackOrder[i + 1]].order_index = i + 1;
+            layers[layer_id].order_index = i;
+
+            i--;
+        }
+    }
+
+    void raiseLayerInOrder(INT layer_id, INT priority, size_t order_index)
+    {
+        size_t i = order_index + 1;
+        while (i < stackOrder.size() && priority > layers[stackOrder[i]].priority)
+        {
+            stackOrder[i - 1] = stackOrder[i];
+            stackOrder[i] = layer_id;
+
+            layers[stackOrder[i - 1]].order_index = i - 1;
             layers[layer_id].order_index = i;
 
             i++;
