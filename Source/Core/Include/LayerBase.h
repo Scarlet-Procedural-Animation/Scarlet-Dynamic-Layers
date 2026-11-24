@@ -19,10 +19,6 @@ public:
     // To be namehidden in derived classes
     using Self = LayerBase;
 
-public:
-    LayerBase() {}
-    virtual ~LayerBase() = 0;
-
 protected:
     // Type of the layer in the stack
     LayerType type;
