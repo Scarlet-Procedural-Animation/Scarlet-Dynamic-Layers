@@ -43,6 +43,8 @@ public:
     {
         INT id = Base::addLayer(layer);
         
+        valueCache.push_back(TOutValue());
+
         shouldRecalculate = true;
         lowestChangedOrderIndex = this->layers[id].order_index;
     }
@@ -52,6 +54,8 @@ public:
     {
         shouldRecalculate = true;
         lowestChangedOrderIndex = this->layers[layer_id].order_index;
+
+        valueCache.pop_back();
 
         Base::removeLayer(layer_id);
     }
