@@ -2,6 +2,7 @@
 
 #include "../Core/Include/Defines.h"
 #include "../Core/Include/StackVariations.h"
+#include "Operations.h"
 
 #include <algorithm>
 #include <vector>
@@ -21,6 +22,7 @@ class StackBasicOperationsCore : public sb::StackMultiOperation<TOutValue, TLaye
 {
 public:
     using Base = sb::StackBase<TOutValue, TLayer, TDerivedClass>;
+    using Super = sb::StackMultiOperation<TOutValue, TLayer, TDerivedClass>;
 
     enum class LayerBlendType : char
     {
@@ -34,6 +36,27 @@ protected:
     // Order index of the top most Override-type layer. All calculations are started from this index
     size_t topOverrideLayerOrderIndex = 0;
 
+public:
+    virtual INT addLayer(const typename Base::LayerT& layer) override
+    {
+        INT id = Super::addLayer(layer);
+        size_t order_index = this->layers[id].order_index;
+
+        if (layer.type == LayerType::Override)
+            topOverrideLayerOrderIndex = std::max(topOverrideLayerOrderIndex, order_index);
+
+        return id;
+    }
+
+    virtual void removeLayer(INT layer_id) override
+    {
+        Super::removeLayer(layer_id);
+
+        // Find top override layer from scrath
+        // Not sure if optimization is possible / worth it
+        topOverrideLayerOrderIndex = findTopOverrideLayer(size() - 1);
+    }
+
 // Friendly interface for TLayer to call
 protected:
     // Called by TLayer when it's value is changed
@@ -44,14 +67,25 @@ protected:
     }
 
     // Called by TLayer when it's type is changed
-    void onTypeChanged(size_t order_index)
+    void onTypeChanged(size_t order_index, LayerType old_type, LayerType new_type)
     {
         this->shouldRecalculate = true;
         this->lowestChangedOrderIndex = std::min(this->lowestChangedOrderIndex, order_index);
+
+        if (order_index == topOverrideLayerOrderIndex && new_type != LayerType::Override)
+        {
+            if (order_index > 0)
+                topOverrideLayerOrderIndex = findTopOverrideLayer(order_index - 1);
+            else
+                topOverrideLayerOrderIndex = 0;
+        }
+            
+        else if (new_type == LayerType::Override)
+            topOverrideLayerOrderIndex = std::max(topOverrideLayerOrderIndex, order_index);
     }
 
     // Called by TLayer when it's priority is changed
-    void onPriorityChanged(size_t order_index)
+    void onPriorityChanged(size_t order_index, INT old_priority, INT new_priority)
     {
         INT layer_id = this->stackOrder[order_index];
         INT priority = this->layers[layer_id].priority;
@@ -61,6 +95,18 @@ protected:
 
         this->shouldRecalculate = true;
         this->lowestChangedOrderIndex = std::min(this->lowestChangedOrderIndex, std::min(order_index, this->layers[layer_id].order_index));
+    }
+
+protected:
+    // Finds the highest override layer that stands below top_search_index
+    size_t findTopOverrideLayer(size_t top_search_index)
+    {
+        size_t i = top_search_index;
+        while (i > 0)
+            if (this->layers[this->stackOrder[i]].type == LayerType::Override)
+                return i;
+
+        return 0;
     }
 };
 
@@ -89,7 +135,31 @@ protected:
     // Recalculates stack's value cache
     void recalculate()
     {
-        // TO DO
+        size_t start = std::max(this->lowestChangedOrderIndex, this->topOverrideLayerOrderIndex);
+        for (size_t i = start; i < size(); i++)
+        {
+            size_t layer_id = static_cast<size_t>(this->stackOrder[i]);
+            if (i == 0)
+            {
+                this->valueCache[i] == this->layers[layer_id].getValue();
+            }
+
+            else
+            {
+                TOutValue layer_value = this->layers[layer_id].getValue();
+                LayerType type = this->layers[layer_id].type;
+
+                if (type == LayerType::Override) { this->valueCache[i] = layer_value; }
+                else if (type == LayerType::Add)
+                {
+                    this->valueCache[i] = Operations::add<TOutValue, TOutValue, TOutValue>(this->valueCache[i - 1], layer_value);
+                }
+                else // LayerType::Multiply
+                {
+                    this->valueCache[i] = Operations::multiply<TOutValue, TOutValue, TOutValue>(this->valueCache[i - 1], layer_value);
+                }
+            }
+        }
     }
 };
 
