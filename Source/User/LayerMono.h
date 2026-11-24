@@ -5,9 +5,6 @@
 namespace DynamicLayers
 {
 
-namespace Layers
-{
-
 // Layer class with a single value entry
 template<class TStack>
 class LayerMono : public lb::LayerBase<TStack>
@@ -41,7 +38,5 @@ public:
 private:
     friend TStack;
 };
-
-} // Layers namespace
 
 } // DynamicLayers namespace

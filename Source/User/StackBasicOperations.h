@@ -10,9 +10,6 @@
 namespace DynamicLayers
 {
 
-namespace Stacks
-{
-
 namespace gtc // General Type Cores namespace
 {
 
@@ -270,5 +267,4 @@ protected:
     }
 };
 
-} // namespace Stacks
 } // namespace DynamicLayers
