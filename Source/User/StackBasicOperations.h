@@ -126,6 +126,9 @@ public:
     // Returns resulting stack value
     const TOutValue& getValue()
     {
+        if (size() == 0)
+            return Operations::zero<TOutValue>();
+
         if (this->shouldRecalculate)
             recalculate();
         return this->valueCache[size() - 1];
@@ -136,30 +139,116 @@ protected:
     void recalculate()
     {
         size_t start = std::max(this->lowestChangedOrderIndex, this->topOverrideLayerOrderIndex);
-        for (size_t i = start; i < size(); i++)
-        {
-            size_t layer_id = static_cast<size_t>(this->stackOrder[i]);
-            if (i == 0)
+
+        if (start < size())
+            for (size_t i = start; i < size(); i++)
             {
-                this->valueCache[i] == this->layers[layer_id].getValue();
+                size_t layer_id = static_cast<size_t>(this->stackOrder[i]);
+                if (i == 0)
+                {
+                    this->valueCache[i] == this->layers[layer_id].getValue();
+                }
+
+                else
+                {
+                    TOutValue layer_value = this->layers[layer_id].getValue();
+                    LayerType type = this->layers[layer_id].type;
+
+                    if (type == LayerType::Override) { this->valueCache[i] = layer_value; }
+                    else if (type == LayerType::Add)
+                    {
+                        this->valueCache[i] = Operations::add<TOutValue, TOutValue, TOutValue>(this->valueCache[i - 1], layer_value);
+                    }
+                    else // LayerType::Multiply
+                    {
+                        this->valueCache[i] = Operations::multiply<TOutValue, TOutValue, TOutValue>(this->valueCache[i - 1], layer_value);
+                    }
+                }
             }
 
-            else
-            {
-                TOutValue layer_value = this->layers[layer_id].getValue();
-                LayerType type = this->layers[layer_id].type;
+        this->shouldRecalculate = false;
+        this->lowestChangedOrderIndex = size();
+    }
+};
 
-                if (type == LayerType::Override) { this->valueCache[i] = layer_value; }
-                else if (type == LayerType::Add)
+
+template<typename TOutValue, template <class> class TLayer>
+class StackBasicOperationsToggleable final : public gtc::StackBasicOperationsCore<TOutValue, TLayer, StackBasicOperations<TOutValue, TLayer>>
+{
+public:
+    using Base = sb::StackBase<TOutValue, TLayer, StackBasicOperations<TOutValue, TLayer>>;
+    using Core = gtc::StackBasicOperationsCore<TOutValue, TLayer, StackBasicOperations<TOutValue, TLayer>>;
+
+    using LayerType = typename Core::LayerBlendType;
+    using ValueType = typename Base::ValueType;
+
+public:
+    // Returns resulting stack value
+    const TOutValue& getValue()
+    {
+        if (size() == 0)
+            return Operations::zero<TOutValue>();
+        if (this->shouldRecalculate)
+            recalculate();
+        return this->valueCache[size() - 1];
+    }
+
+// Friendly interface for TLayer to call
+protected:
+
+    // Called by TLayer when it's Enabled status is changed
+    void onEnabledChanged(size_t order_index, bool new_enabled)
+    {
+        INT layer_id = this->stackOrder[order_index];
+        LayerType type = this->layers[layer_id].type;
+
+        this->shouldRecalculate = true;
+        this->lowestChangedOrderIndex = std::min(this->lowestChangedOrderIndex, order_index); 
+    }  
+
+protected:
+    // Recalculates stack's value cache
+    void recalculate()
+    {
+        size_t start = std::max(this->lowestChangedOrderIndex, this->topOverrideLayerOrderIndex);
+
+        // Find the first enabled layer
+        while (this->layers[this->stackOrder[start]].enabled == false && start > 0)
+            start--;
+        while (this->layers[this->stackOrder[start]].enabled == false && start < size())
+            start++;
+
+        if (start < size())
+            for (size_t i = start; i < size(); i++)
+            {
+                size_t layer_id = static_cast<size_t>(this->stackOrder[i]);
+                if (this->layers[layer_id].enabled)
                 {
-                    this->valueCache[i] = Operations::add<TOutValue, TOutValue, TOutValue>(this->valueCache[i - 1], layer_value);
-                }
-                else // LayerType::Multiply
-                {
-                    this->valueCache[i] = Operations::multiply<TOutValue, TOutValue, TOutValue>(this->valueCache[i - 1], layer_value);
+                    if (i == 0)
+                    {
+                        this->valueCache[i] == this->layers[layer_id].getValue();
+                    }
+
+                    else
+                    {
+                        TOutValue layer_value = this->layers[layer_id].getValue();
+                        LayerType type = this->layers[layer_id].type;
+
+                        if (type == LayerType::Override) { this->valueCache[i] = layer_value; }
+                        else if (type == LayerType::Add)
+                        {
+                            this->valueCache[i] = Operations::add<TOutValue, TOutValue, TOutValue>(this->valueCache[i - 1], layer_value);
+                        }
+                        else // LayerType::Multiply
+                        {
+                            this->valueCache[i] = Operations::multiply<TOutValue, TOutValue, TOutValue>(this->valueCache[i - 1], layer_value);
+                        }
+                    }
                 }
             }
-        }
+
+        this->shouldRecalculate = false;
+        this->lowestChangedOrderIndex = size();
     }
 };
 
