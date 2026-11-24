@@ -32,6 +32,10 @@ public:
     };
     using LayerType = LayerBlendType;
 
+public:
+    StackBasicOperationsCore();
+    virtual ~StackBasicOperationsCore() = 0;
+
 protected:
     // Order index of the top most Override-type layer. All calculations are started from this index
     size_t topOverrideLayerOrderIndex = 0;
@@ -129,6 +133,10 @@ public:
     using ValueType = typename Base::ValueType;
 
 public:
+    StackBasicOperations();
+    virtual ~StackBasicOperations() override {}
+
+public:
     // Returns resulting stack value
     const TOutValue& getValue()
     {
@@ -187,6 +195,10 @@ public:
 
     using LayerType = typename Core::LayerBlendType;
     using ValueType = typename Base::ValueType;
+
+public:
+    StackBasicOperationsToggleable();
+    virtual ~StackBasicOperationsToggleable() override {}
 
 public:
     // Returns resulting stack value
