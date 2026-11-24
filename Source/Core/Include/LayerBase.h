@@ -44,13 +44,23 @@ public:
     LayerType getType() { return type; }
 
     // Set type of the layer in the stack
-    void setType(LayerType new_type) { type = new_type; }
+    void setType(LayerType new_type) 
+    { 
+        LayerType old_type = type;
+        type = new_type; 
+        stack->onTypeChanged(order_index, old_type, new_type);
+    }
 
     // Priority of the layer in the stack
     INT getPriority() { return priority; }
 
     // Set priority of the layer in the stack
-    void setPriority(INT new_priority) { priority = new_priority; }
+    void setPriority(INT new_priority) 
+    { 
+        INT old_priority = priority;
+        priority = new_priority; 
+        stack->onPriorityChanged(order_index, old_priority, new_priority);
+    }
 
 private:
     friend TStack;
