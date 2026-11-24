@@ -41,10 +41,10 @@ public:
 
 public:
     // Editable reference to a layer
-    LayerT& operator[](INT index) { return layers[index]; }
+    LayerT& operator[](INT id) { return layers[id]; }
     
     // Non-editable reference to a layer
-    const LayerT& operator[](INT index) const { return layers[index]; }
+    const LayerT& operator[](INT id) const { return layers[id]; }
 
     // Number of layers in the stack
     size_t size() { return stackOrder.size(); } // Because `layers` may contain free slots
