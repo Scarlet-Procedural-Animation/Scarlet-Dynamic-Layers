@@ -59,6 +59,12 @@ public:
 
 // Friendly interface for TLayer to call
 protected:
+
+    // NOTE : all notify functions except onValueChanged are called AFTER the change is applied
+    // onValueChanged, however is called BEFORE the change to the value is applied
+    // This is to allow passing of old_value by reference (avoiding copying)
+    // Remember: onValueChanged is not supposed to perform a full stack recalculation!
+
     // Called by TLayer when it's value is changed
     void onValueChanged(size_t order_index, const TOutValue& old_value, const TOutValue& new_value)
     {
