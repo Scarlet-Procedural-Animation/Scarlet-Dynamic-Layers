@@ -1,6 +1,6 @@
 #pragma once
 
-#include "../Core/Include/LayerBase.h"
+#include "LayerBase.h"
 
 namespace DynamicLayers
 {

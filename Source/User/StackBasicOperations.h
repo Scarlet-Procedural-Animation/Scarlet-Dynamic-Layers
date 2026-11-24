@@ -1,7 +1,7 @@
 #pragma once
 
-#include "../Core/Include/Defines.h"
-#include "../Core/Include/StackVariations.h"
+#include "Defines.h"
+#include "StackVariations.h"
 #include "Operations.h"
 
 #include <algorithm>
