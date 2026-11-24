@@ -19,6 +19,10 @@ public:
     using ValueType = typename Base::ValueType;
     using LayerType = typename Base::LayerType;
 
+public:
+    LayerMono() {}
+    virtual ~LayerMono() override {}
+
 protected:
     // Value entry
     ValueType value;
