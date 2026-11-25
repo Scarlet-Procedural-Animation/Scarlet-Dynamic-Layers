@@ -14,7 +14,7 @@ public:
     using Base = lb::LayerBase<TStack>;
 
 public:
-    LayerMono() {}
+    LayerMono(TBlendType type_, INT prioriry_) : Base(type_, priority_) {}
     virtual ~LayerMono() override {}
 
 protected:
