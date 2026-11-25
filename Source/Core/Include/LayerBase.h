@@ -9,19 +9,16 @@ namespace lb // Layer Basics
 {
 
 // Abstact base class for all dynamic layers 
-template<class TStack>
+template<class TOutValueType, class TBlendType, class TStack>
 class LayerBase
 {
 public:
-    using ValueType = typename TStack::ValueType;
-    using LayerType = typename TStack::LayerType;
-
     // To be namehidden in derived classes
     using Self = LayerBase;
 
 protected:
     // Type of the layer in the stack
-    LayerType type;
+    TBlendType type;
 
     // Priority of the layer in the stack
     INT priority;
@@ -34,19 +31,19 @@ protected:
 
 public:
     // Constructor
-    LayerBase(LayerType type_, INT prioriry_) : type(type_), priority(prioriry_) {}
+    LayerBase(TBlendType type_, INT prioriry_) : type(type_), priority(prioriry_) {}
 
     // Pure virtual destructor
     virtual ~LayerBase() = 0;
 
 public:
     // Type of the layer in the stack
-    LayerType getType() { return type; }
+    TBlendType getType() { return type; }
 
     // Set type of the layer in the stack
-    void setType(LayerType new_type) 
+    void setType(TBlendType new_type) 
     { 
-        LayerType old_type = type;
+        TBlendType old_type = type;
         type = new_type; 
         stack->onTypeChanged(order_index, old_type, new_type);
     }

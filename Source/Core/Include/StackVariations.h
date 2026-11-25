@@ -12,7 +12,7 @@ namespace sb // Stack Basics namespace
 {
 
 // An abstract version of stack base that is meant to be used for stacks with multiple incompatible types of operations
-template<typename TOutValue, template <class> class TLayer, class TDerivedClass>
+template<typename TOutValue, template <class, class, class> class TLayer, class TDerivedClass>
 class StackMultiOperation : public StackBase<TOutValue, TLayer, TDerivedClass>
 {
 public:
@@ -39,7 +39,7 @@ public:
 
     // Adds a layer to the stack
     // Returns created layer's id - use it to access and modify layer's data
-    virtual INT addLayer(const typename Base::LayerT& layer) override
+    virtual INT addLayer(const typename Base::LayerType& layer) override
     {
         INT id = Base::addLayer(layer);
         
@@ -61,7 +61,7 @@ public:
     }
 
 private:
-    friend typename Base::LayerT::Self;
+    friend typename Base::LayerType::Self;
 };
 
 } // namespace sb

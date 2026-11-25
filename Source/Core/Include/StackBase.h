@@ -11,19 +11,18 @@ namespace sb // Stack Basics namespace
 {
 
 // Abstract base class for all dynamic layer stacks
-template<typename TOutValue, template <class> class TLayer, class TDerivedClass>
+template<typename TOutValue, template <class, class, class> class TLayer, class TDerivedClass>
 class StackBase
 {
 public:
-    using LayerT = TLayer<TDerivedClass>;
+    using LayerType = TLayer<TDerivedClass, TOutValue, TDerivedClass::LayerBlendType>;
 
     // To be namehidden in derived classes
-    using ValueType = TOutValue; 
-    using LayerType = char;
+    using ValueType = TOutValue;
 
 protected:
     // Dynamic layer storage, does not reflect application order
-    std::vector<LayerT> layers;
+    std::vector<LayerType> layers;
 
     // Contains layer ids (indexing `layers` vector) in the application order
     std::vector<INT> stackOrder;
@@ -41,10 +40,10 @@ public:
 
 public:
     // Editable reference to a layer
-    LayerT& operator[](INT id) { return layers[id]; }
+    LayerType& operator[](INT id) { return layers[id]; }
     
     // Non-editable reference to a layer
-    const LayerT& operator[](INT id) const { return layers[id]; }
+    const LayerType& operator[](INT id) const { return layers[id]; }
 
     // Number of layers in the stack
     size_t size() { return stackOrder.size(); } // Because `layers` may contain free slots
@@ -57,7 +56,7 @@ public:
 
     // Adds a layer to the stack
     // Returns created layer's id - use it to access and modify layer's data
-    virtual INT addLayer(const LayerT& layer)
+    virtual INT addLayer(const LayerType& layer)
     {
         // Storing the layer
         INT id = addLayerToStorage(layer);
@@ -81,7 +80,7 @@ public:
 protected:
 
     // Finds a free space or pushes back the layer
-    INT addLayerToStorage(const LayerT& layer)
+    INT addLayerToStorage(const LayerType& layer)
     {
         if (freeIndices.empty())
         {
@@ -153,7 +152,7 @@ protected:
     }
 
 private:
-    friend class LayerT::Self;
+    friend class LayerType::Self;
 };
 
 } // namespace sb

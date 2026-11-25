@@ -13,21 +13,22 @@ namespace DynamicLayers
 namespace gtc // General Type Cores namespace
 {
 
+enum class BlendType_BasicOperations : char
+{
+    Override,
+    Add,
+    Multiply
+};
+
 // Abstract class for all 
-template<typename TOutValue, template <class> class TLayer, class TDerivedClass>
+template<typename TOutValue, template <class, class, class> class TLayer, class TDerivedClass>
 class StackBasicOperationsCore : public sb::StackMultiOperation<TOutValue, TLayer, TDerivedClass>
 {
 public:
     using Base = sb::StackBase<TOutValue, TLayer, TDerivedClass>;
     using Super = sb::StackMultiOperation<TOutValue, TLayer, TDerivedClass>;
 
-    enum class LayerBlendType : char
-    {
-        Override,
-        Add,
-        Multiply
-    };
-    using LayerType = LayerBlendType;
+    using LayerBlendType = BlendType_BasicOperations;
 
 public:
     StackBasicOperationsCore();
@@ -38,12 +39,12 @@ protected:
     size_t topOverrideLayerOrderIndex = 0;
 
 public:
-    virtual INT addLayer(const typename Base::LayerT& layer) override
+    virtual INT addLayer(const typename Base::LayerType& layer) override
     {
         INT id = Super::addLayer(layer);
         size_t order_index = this->layers[id].order_index;
 
-        if (layer.type == LayerType::Override)
+        if (layer.type == LayerBlendType::Override)
             topOverrideLayerOrderIndex = std::max(topOverrideLayerOrderIndex, order_index);
 
         return id;
@@ -74,12 +75,12 @@ protected:
     }
 
     // Called by TLayer when it's type is changed
-    void onTypeChanged(size_t order_index, LayerType old_type, LayerType new_type)
+    void onTypeChanged(size_t order_index, LayerBlendType old_type, LayerBlendType new_type)
     {
         this->shouldRecalculate = true;
         this->lowestChangedOrderIndex = std::min(this->lowestChangedOrderIndex, order_index);
 
-        if (order_index == topOverrideLayerOrderIndex && new_type != LayerType::Override)
+        if (order_index == topOverrideLayerOrderIndex && new_type != LayerBlendType::Override)
         {
             if (order_index > 0)
                 topOverrideLayerOrderIndex = findTopOverrideLayer(order_index - 1);
@@ -87,7 +88,7 @@ protected:
                 topOverrideLayerOrderIndex = 0;
         }
             
-        else if (new_type == LayerType::Override)
+        else if (new_type == LayerBlendType::Override)
             topOverrideLayerOrderIndex = std::max(topOverrideLayerOrderIndex, order_index);
     }
 
@@ -110,7 +111,7 @@ protected:
     {
         size_t i = top_search_index;
         while (i > 0)
-            if (this->layers[this->stackOrder[i]].type == LayerType::Override)
+            if (this->layers[this->stackOrder[i]].type == LayerBlendType::Override)
                 return i;
 
         return 0;
@@ -119,14 +120,14 @@ protected:
 
 } // namespace gtc
 
-template<typename TOutValue, template <class> class TLayer>
+template<typename TOutValue, template <class, class, class> class TLayer>
 class StackBasicOperations final : public gtc::StackBasicOperationsCore<TOutValue, TLayer, StackBasicOperations<TOutValue, TLayer>>
 {
 public:
     using Base = sb::StackBase<TOutValue, TLayer, StackBasicOperations<TOutValue, TLayer>>;
     using Core = gtc::StackBasicOperationsCore<TOutValue, TLayer, StackBasicOperations<TOutValue, TLayer>>;
 
-    using LayerType = typename Core::LayerBlendType;
+    using LayerBlendType = typename Core::LayerBlendType;
     using ValueType = typename Base::ValueType;
 
 public:
@@ -163,14 +164,14 @@ protected:
                 else
                 {
                     TOutValue layer_value = this->layers[layer_id].getValue();
-                    LayerType type = this->layers[layer_id].type;
+                    LayerBlendType type = this->layers[layer_id].type;
 
-                    if (type == LayerType::Override) { this->valueCache[i] = layer_value; }
-                    else if (type == LayerType::Add)
+                    if (type == LayerBlendType::Override) { this->valueCache[i] = layer_value; }
+                    else if (type == LayerBlendType::Add)
                     {
                         this->valueCache[i] = Operations::add<TOutValue, TOutValue, TOutValue>(this->valueCache[i - 1], layer_value);
                     }
-                    else // LayerType::Multiply
+                    else // LayerBlendType::Multiply
                     {
                         this->valueCache[i] = Operations::multiply<TOutValue, TOutValue, TOutValue>(this->valueCache[i - 1], layer_value);
                     }
@@ -183,14 +184,14 @@ protected:
 };
 
 
-template<typename TOutValue, template <class> class TLayer>
+template<typename TOutValue, template <class, class, class> class TLayer>
 class StackBasicOperationsToggleable final : public gtc::StackBasicOperationsCore<TOutValue, TLayer, StackBasicOperations<TOutValue, TLayer>>
 {
 public:
     using Base = sb::StackBase<TOutValue, TLayer, StackBasicOperations<TOutValue, TLayer>>;
     using Core = gtc::StackBasicOperationsCore<TOutValue, TLayer, StackBasicOperations<TOutValue, TLayer>>;
 
-    using LayerType = typename Core::LayerBlendType;
+    using LayerBlendType = typename Core::LayerBlendType;
     using ValueType = typename Base::ValueType;
 
 public:
@@ -215,7 +216,7 @@ protected:
     void onEnabledChanged(size_t order_index, bool new_enabled)
     {
         INT layer_id = this->stackOrder[order_index];
-        LayerType type = this->layers[layer_id].type;
+        LayerBlendType type = this->layers[layer_id].type;
 
         this->shouldRecalculate = true;
         this->lowestChangedOrderIndex = std::min(this->lowestChangedOrderIndex, order_index); 
@@ -247,14 +248,14 @@ protected:
                     else
                     {
                         TOutValue layer_value = this->layers[layer_id].getValue();
-                        LayerType type = this->layers[layer_id].type;
+                        LayerBlendType type = this->layers[layer_id].type;
 
-                        if (type == LayerType::Override) { this->valueCache[i] = layer_value; }
-                        else if (type == LayerType::Add)
+                        if (type == LayerBlendType::Override) { this->valueCache[i] = layer_value; }
+                        else if (type == LayerBlendType::Add)
                         {
                             this->valueCache[i] = Operations::add<TOutValue, TOutValue, TOutValue>(this->valueCache[i - 1], layer_value);
                         }
-                        else // LayerType::Multiply
+                        else // LayerBlendType::Multiply
                         {
                             this->valueCache[i] = Operations::multiply<TOutValue, TOutValue, TOutValue>(this->valueCache[i - 1], layer_value);
                         }
