@@ -50,7 +50,7 @@ public:
 
     // Returns stack order
     // Stack order contains layer ids in the application order
-    const std::vector<INT>& getOrder() { return stackOrder; }
+    const std::vector<INT>& getOrder() const { return stackOrder; }
 
     // Layer manipulation
 
