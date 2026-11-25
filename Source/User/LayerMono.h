@@ -6,15 +6,14 @@ namespace DynamicLayers
 {
 
 // Layer class with a single value entry
-template<class TOutValueType, class TBlendType, class TStack>
-class LayerMono : public lb::LayerBase<TStack>
+template<typename TOutValueType, typename TBlendType, class TStack>
+class LayerMono : public lb::LayerBase<TOutValueType, TBlendType, TStack>
 {
 public:
-    using Self = LayerMono<TStack>;
-    using Base = lb::LayerBase<TStack>;
+    using Base = lb::LayerBase<TOutValueType, TBlendType, TStack>;
 
 public:
-    LayerMono(TBlendType type_, INT prioriry_) : Base(type_, priority_) {}
+    LayerMono(TBlendType type_, INT priority_) : Base(type_, priority_) {}
     virtual ~LayerMono() override {}
 
 protected:
@@ -23,7 +22,7 @@ protected:
 
 public:
     // Layers main function - returning the value
-    const TOutValueType& getValue() { return value; }
+    const TOutValueType& getValue() const { return value; }
 
     // Updates layer's value to a new one
     void setValue(const TOutValueType& new_value)
@@ -31,9 +30,6 @@ public:
         this->stack->onValueChanged(this->order_index, value, new_value);
         value = new_value;
     }
-
-private:
-    friend TStack;
 };
 
 } // DynamicLayers namespace

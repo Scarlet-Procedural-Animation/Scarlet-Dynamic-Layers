@@ -11,11 +11,11 @@ namespace sb // Stack Basics namespace
 {
 
 // Abstract base class for all dynamic layer stacks
-template<typename TOutValue, template <class, class, class> class TLayer, class TDerivedClass>
+template<typename TOutValue, typename TLayerBlendType, template <class, class, class> class TLayer, class TDerivedClass>
 class StackBase
 {
 public:
-    using LayerType = TLayer<TDerivedClass, TOutValue, TDerivedClass::LayerBlendType>;
+    using LayerType = TLayer<TOutValue, TLayerBlendType, TDerivedClass>;
 
     // To be namehidden in derived classes
     using ValueType = TOutValue;
@@ -36,7 +36,7 @@ public:
     StackBase() {}
 
     // Pure virtual destructor (this is an abstract class)
-    virtual ~StackBase() = 0;
+    virtual ~StackBase() = 0 {}
 
 public:
     // Editable reference to a layer
@@ -104,7 +104,7 @@ protected:
 
         if (stackOrder.size() == 1) return;
 
-        INT priority = layers[layer_id].priority;
+        INT priority = layers[layer_id].getPriority();
 
         sinkLayerInOrder(layer_id, priority, stackOrder.size() - 1);
     }
@@ -112,13 +112,13 @@ protected:
     void sinkLayerInOrder(INT layer_id, INT priority, size_t order_index)
     {
         size_t i = order_index - 1;
-        while (i >= 0 && priority < layers[stackOrder[i]].priority)
+        while (i >= 0 && priority < layers[stackOrder[i]].getPriority())
         {
             stackOrder[i + 1] = stackOrder[i];
             stackOrder[i] = layer_id;
 
-            layers[stackOrder[i + 1]].order_index = i + 1;
-            layers[layer_id].order_index = i;
+            layers[stackOrder[i + 1]].setOrderIndex(i + 1);
+            layers[layer_id].setOrderIndex(i);
 
             i--;
         }
@@ -127,13 +127,13 @@ protected:
     void raiseLayerInOrder(INT layer_id, INT priority, size_t order_index)
     {
         size_t i = order_index + 1;
-        while (i < stackOrder.size() && priority > layers[stackOrder[i]].priority)
+        while (i < stackOrder.size() && priority > layers[stackOrder[i]].getPriority())
         {
             stackOrder[i - 1] = stackOrder[i];
             stackOrder[i] = layer_id;
 
-            layers[stackOrder[i - 1]].order_index = i - 1;
-            layers[layer_id].order_index = i;
+            layers[stackOrder[i - 1]].setOrderIndex(i - 1);
+            layers[layer_id].setOrderIndex(i);
 
             i++;
         }
@@ -142,7 +142,7 @@ protected:
     // Removes layer from stack order
     void removeFromOrder(INT layer_id)
     {
-        size_t i = layers[layer_id].order_index;
+        size_t i = layers[layer_id].getOrderIndex();
         while (i < stackOrder.size() - 1)
         {
             stackOrder[i] = stackOrder[i + 1];
@@ -150,9 +150,6 @@ protected:
         }
         stackOrder.pop_back();
     }
-
-private:
-    friend class LayerType::Self;
 };
 
 } // namespace sb

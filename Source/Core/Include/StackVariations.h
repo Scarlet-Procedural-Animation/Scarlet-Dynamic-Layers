@@ -12,11 +12,11 @@ namespace sb // Stack Basics namespace
 {
 
 // An abstract version of stack base that is meant to be used for stacks with multiple incompatible types of operations
-template<typename TOutValue, template <class, class, class> class TLayer, class TDerivedClass>
-class StackMultiOperation : public StackBase<TOutValue, TLayer, TDerivedClass>
+template<typename TOutValue, typename TLayerBlendType, template <class, class, class> class TLayer, class TDerivedClass>
+class StackMultiOperation : public StackBase<TOutValue, TLayerBlendType, TLayer, TDerivedClass>
 {
 public:
-    using Base = StackBase<TOutValue, TLayer, TDerivedClass>;
+    using Base = StackBase<TOutValue, TLayerBlendType, TLayer, TDerivedClass>;
     
 protected:
     // Fully calculated value cache for each execution step - synced with stackOrder
@@ -30,10 +30,10 @@ protected:
 
 public:
     // Default constructor
-    StackMultiOperation();
+    StackMultiOperation() {}
 
     // Pure virtual destructor (this is an abstract class)
-    virtual ~StackMultiOperation() = 0;
+    virtual ~StackMultiOperation() = 0 {}
 
 public:
 
@@ -46,22 +46,21 @@ public:
         valueCache.push_back(TOutValue());
 
         shouldRecalculate = true;
-        lowestChangedOrderIndex = this->layers[id].order_index;
+        lowestChangedOrderIndex = this->layers[id].getOrderIndex();
+
+        return id;
     }
 
     // Removes a layer from the stack
     virtual void removeLayer(INT layer_id) override
     {
         shouldRecalculate = true;
-        lowestChangedOrderIndex = this->layers[layer_id].order_index;
+        lowestChangedOrderIndex = this->layers[layer_id].getOrderIndex();
 
         valueCache.pop_back();
 
         Base::removeLayer(layer_id);
     }
-
-private:
-    friend typename Base::LayerType::Self;
 };
 
 } // namespace sb

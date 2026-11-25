@@ -9,13 +9,9 @@ namespace lb // Layer Basics
 {
 
 // Abstact base class for all dynamic layers 
-template<class TOutValueType, class TBlendType, class TStack>
+template<typename TOutValueType, typename TBlendType, class TStack>
 class LayerBase
 {
-public:
-    // To be namehidden in derived classes
-    using Self = LayerBase;
-
 protected:
     // Type of the layer in the stack
     TBlendType type;
@@ -34,11 +30,11 @@ public:
     LayerBase(TBlendType type_, INT prioriry_) : type(type_), priority(prioriry_) {}
 
     // Pure virtual destructor
-    virtual ~LayerBase() = 0;
+    virtual ~LayerBase() = 0 {}
 
 public:
     // Type of the layer in the stack
-    TBlendType getType() { return type; }
+    TBlendType getType() const { return type; }
 
     // Set type of the layer in the stack
     void setType(TBlendType new_type) 
@@ -49,7 +45,7 @@ public:
     }
 
     // Priority of the layer in the stack
-    INT getPriority() { return priority; }
+    INT getPriority() const { return priority; }
 
     // Set priority of the layer in the stack
     void setPriority(INT new_priority) 
@@ -59,8 +55,11 @@ public:
         stack->onPriorityChanged(order_index, old_priority, new_priority);
     }
 
-private:
-    friend TStack;
+    // Index of the layer in the owner stack's order
+    size_t getOrderIndex() const { return order_index; }
+
+    // ONLY CALLED BY THE STACK! Modifies index of the layer in the owner stack's order
+    void setOrderIndex(size_t new_order_index) { order_index = new_order_index; }
 };
 
 } // namespace lb
