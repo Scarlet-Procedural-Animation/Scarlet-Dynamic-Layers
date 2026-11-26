@@ -90,7 +90,7 @@ protected:
 
         else 
         {
-            size_t free_index = *(freeIndices.end());
+            size_t free_index = freeIndices.back();
             layers[free_index] = layer;
             freeIndices.pop_back();
             return free_index;
@@ -111,7 +111,7 @@ protected:
 
     void sinkLayerInOrder(INT layer_id, INT priority, size_t order_index)
     {
-        size_t i = order_index - 1;
+        int i = order_index - 1;
         while (i >= 0 && priority < layers[stackOrder[i]].getPriority())
         {
             stackOrder[i + 1] = stackOrder[i];
