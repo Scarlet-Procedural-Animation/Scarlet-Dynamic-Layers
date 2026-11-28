@@ -61,6 +61,9 @@ public:
         // Storing the layer
         INT id = addLayerToStorage(layer);
 
+        // Linking layer to this stack
+        layers[id].setStack(static_cast<TDerivedClass*>(this));
+
         // Adding layer to order
         insertLayerToOrder(id);
 
@@ -101,6 +104,8 @@ protected:
     void insertLayerToOrder(INT layer_id)
     {
         stackOrder.push_back(layer_id);
+
+        layers[layer_id].setOrderIndex(stackOrder.size() - 1);
 
         if (stackOrder.size() == 1) return;
 
@@ -146,6 +151,7 @@ protected:
         while (i < stackOrder.size() - 1)
         {
             stackOrder[i] = stackOrder[i + 1];
+            layers[stackOrder[i]].setOrderIndex(i);
             i++;
         }
         stackOrder.pop_back();
