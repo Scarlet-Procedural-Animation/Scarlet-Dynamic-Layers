@@ -46,7 +46,7 @@ public:
         valueCache.push_back(TOutValue());
 
         shouldRecalculate = true;
-        lowestChangedOrderIndex = this->layers[id].getOrderIndex();
+        lowestChangedOrderIndex = std::min(this->lowestChangedOrderIndex, this->layers[id].getOrderIndex());
 
         return id;
     }
