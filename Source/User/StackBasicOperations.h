@@ -56,7 +56,10 @@ public:
 
         // Find top override layer from scrath
         // Not sure if optimization is possible / worth it
-        topOverrideLayerOrderIndex = findTopOverrideLayer(size() - 1);
+        if (size() > 0)
+            topOverrideLayerOrderIndex = findTopOverrideLayer(size() - 1);
+        else
+            topOverrideLayerOrderIndex = 0;
     }
 
 // Friendly interface for TLayer to call
@@ -111,8 +114,11 @@ protected:
     {
         size_t i = top_search_index;
         while (i > 0)
+        {
             if (this->layers[this->stackOrder[i]].getType() == LayerBlendType::Override)
                 return i;
+            i--;
+        }
 
         return 0;
     }
@@ -158,7 +164,7 @@ protected:
                 size_t layer_id = static_cast<size_t>(this->stackOrder[i]);
                 if (i == 0)
                 {
-                    this->valueCache[i] == this->layers[layer_id].getValue();
+                    this->valueCache[i] = this->layers[layer_id].getValue();
                 }
 
                 else
