@@ -27,7 +27,8 @@ protected:
 
 public:
     // Constructor
-    LayerBase(TBlendType type_, INT prioriry_) : type(type_), priority(prioriry_) {}
+    LayerBase(TBlendType type_, INT prioriry_) : type(type_), priority(prioriry_), 
+                                                 stack(nullptr), order_index(0) {}
 
     // Pure virtual destructor
     virtual ~LayerBase() = 0 {}
@@ -60,6 +61,12 @@ public:
 
     // ONLY CALLED BY THE STACK! Modifies index of the layer in the owner stack's order
     void setOrderIndex(size_t new_order_index) { order_index = new_order_index; }
+
+    // Sets the pointer to the owning stack
+    void setStack(TStack* new_stack) { stack = new_stack; }
+
+    // Pointer to the owner stack
+    TStack* getStack() { return stack; }
 };
 
 } // namespace lb
